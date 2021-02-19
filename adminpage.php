@@ -3,7 +3,7 @@
 	include_once 'admin/config.php';
 
 	function returnUsersAdmin($con,$id) {
-		$query=$con->prepare("SELECT * FROM PPT_Usuario WHERE admin = ?");
+		$query=$con->prepare("SELECT ID, nombre FROM PPT_Usuario WHERE admin = ?");
 		$query->bind_param("i",$id);
 
 		$query->execute();
@@ -16,14 +16,14 @@
 	}
 
 	function returnCuentas($con,$id) {
-		$query=$con->prepare("SELECT * FROM PPT_Cuentas WHERE admin = ?");
+		$query=$con->prepare("SELECT PPT_Cuentas.ID AS ID, PPT_Cuentas.nombre AS nombreCuenta, PPT_Usuario.nombre AS nombreUsuario, PPT_Usuario.ID AS idUsuario FROM PPT_Cuentas LEFT JOIN PPT_Usuario ON PPT_Cuentas.usuario=PPT_Usuario.ID WHERE PPT_Cuentas.admin =?");
 		$query->bind_param("i",$id);
 
 		$query->execute();
    		$result=$query->get_result();
     	$query->close();
     	while($row = $result->fetch_assoc()) {
-        	$array[] = $row;
+        	$array[$row['idUsuario']] = $row;
     	}
     	return $array;
 	}
@@ -66,6 +66,8 @@
 	<script src="http://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.js"></script>
 
   	<link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+  	<link rel="preconnect" href="https://fonts.gstatic.com">
+	<link href="https://fonts.googleapis.com/css2?family=Amatic+SC:wght@700&display=swap" rel="stylesheet">
 </head>
 
 <style type="text/css">
@@ -180,18 +182,7 @@
 		background-color: tan;
 	}
 
-	.title {
-		position: absolute;
-		width: 100%;
-		height: 40px;
-		color: steelblue;
-		margin: 0;
-		padding: 0;
-	}
-
-	.title p {
-		text-align: center;
-	}
+	
 
 	.btn a {
 		background-color: steelblue;
@@ -224,8 +215,119 @@
 		padding: 10px;
 	}
 
+	.popup {
+		background: #22c1c3; 
+		background: -webkit-linear-gradient(to right, #fdbb2d, #22c1c3); 
+		background: linear-gradient(to right, #fdbb2d, #22c1c3);
+	}
+
+	#nuevoAhorrador {
+		.position: relative;
+		width:600px;
+		height:400px;
+	}
+
+	.popup .title {
+		position: absolute;
+		width: 100%;
+		height: 50px;
+		padding-left: 20px;
+	}
+
+	.popup .title p {
+		text-align: left;
+		color: darkred;
+		font-family: 'Amatic SC', cursive;
+		font-size: 2.1em;
+	}
+
+	.form_popup {
+		position: absolute;
+		width:400px;
+		right:10px;
+		top:50px;
+		height: 300px;
+	}
+
+	#nuevoAhorrador button, #nuevaCuenta button {
+		background: #642B73; 
+		background: -webkit-linear-gradient(to right, #C6426E, #642B73); 
+		background: linear-gradient(to right, #C6426E, #642B73); 
+		
+		color:whitesmoke !important;
+		text-shadow: none;
+		position: absolute;
+		bottom: 10px;
+	}
+
+	#nuevaCuenta {
+		position: relative;
+		width:600px;
+		height:440px;
+	}
+
+	#nuevaCuenta .form_nombre {
+		position: absolute;
+		top:90px;
+		left:25px;
+		right:25px;
+	}
+
+	#nuevaCuenta label {
+		color: darkred;
+		font-family: 'Amatic SC', cursive;
+		font-size: 1.5em;
+	}
+
+	#nuevaCuenta .form1 {
+		position: absolute;
+		top:160px;
+		left:25px;
+		width:160px;
+	}
+
+	#nuevaCuenta .form1 input,  #nuevaCuenta .form2 input, #nuevaCuenta .form3 input{
+		text-align: right;
+	}
+
+	#nuevaCuenta .form2 {
+		position: absolute;
+		top:160px;
+		left:220px;
+		width:160px;
+	}
+
+	#nuevaCuenta .form3 {
+		position: absolute;
+		top:160px;
+		right:25px;
+		width:160px;
+	}
+
+	#nuevaCuenta button {
+		width:60%;
+		right:25px;
+	}
+
 </style>
 <script type="text/javascript">
+
+	$(document).on('pagebeforeshow', '#main-page', function(){ 
+    	$(document).on("popupbeforeposition", "#nuevoAhorrador",function( event, ui ) {
+    		$("input[name='usuario']","#nuevoAhorrador").val("")
+    		$("input[name='nombre']","#nuevoAhorrador").val("")
+    		$("input[name='password']","#nuevoAhorrador").val("")
+    		$("input[name='password2']","#nuevoAhorrador").val("")
+    		$("button","#nuevoAhorrador").prop('disabled',true)
+    	});  
+	});
+
+	$(document).on('pagebeforeshow', '#main-page', function(){ 
+    	$(document).on("popupbeforeposition", "#nuevaCuenta",function( event, ui ) {
+    		$("input[name='name']","#nuevaCuenta").val("")
+    		$("button","#nuevaCuenta").prop('disabled',true)
+    	});  
+	});
 
 	function checkPassword() {
 		if ($("input[name='password']","#nuevoAhorrador").val()=="") {
@@ -308,6 +410,21 @@
         	checkFormUsuario()
 		});
 
+		$("input[name='name']","#nuevaCuenta").on('keyup', function() {
+        	if ($("input[name='name']","#nuevaCuenta").val()=="") {
+        		$("button","#nuevaCuenta").prop('disabled',true)
+				return
+			}
+			if ($("input[name='name']","#nuevaCuenta").val().length<4) {
+				$("button","#nuevaCuenta").prop('disabled',true)
+				return
+			}
+			$("button","#nuevaCuenta").prop('disabled',false)
+		});
+
+		$("a",".form").click(function() {
+           $("input[name='usuario']","#nuevaCuenta").val($(this).data('id'))
+        });
 
      })
 </script>
@@ -315,31 +432,77 @@
 
 <div data-role="page" id="main-page">
 
-	<div data-role="popup" id="nuevoAhorrador" class="ui-corner-all">
+	<div data-role="popup" id="nuevoAhorrador" class="ui-corner-all popup">
 		<div class="title">
 			<p>Nuevo Ahorrador</p>
 		</div>
 		<a href="#" data-rel="back" class="ui-btn ui-corner-all ui-shadow ui-btn-a ui-icon-delete ui-btn-icon-notext ui-btn-right">Close</a>
+		<div class="form_popup">
 		<form role="form" action="helperCuentas.php" method="post" data-ajax ="false">
-			<fieldset data-role="fieldcontain" class="red">
-				<label>Usuario:</label>
-				<input type="text" name="usuario" >
+			<fieldset data-role="fieldcontain">
+				<input type="text" name="usuario" placeholder="usuario" >
 			</fieldset>
 			<fieldset data-role="field-contain">
-				<label>Nombre:</label>
-				<input type="text" name="nombre">
+				<input type="text" name="nombre" placeholder="nombre">
 			</fieldset>
 			<fieldset data-role="field-contain">
-				<label>Contraseña:</label>
-				<input type="password" name="password">
+				<input type="password" name="password" placeholder="contraseña">
 			</fieldset>
 			<fieldset data-role="field-contain">
-				<label>Repetir contraseña:</label>
-				<input type="password" name="password2">
+				<input type="password" name="password2" placeholder="repetir contraseña">
 			</fieldset>
 			<p class="check"></p>
 			<button type="submit" name="submit" value="nuevoAhorrador">GUARDAR</button>
 		</form>
+		</div>
+	</div>
+
+	<div data-role="popup" id="nuevaCuenta" class="ui-corner-all popup">
+		<div class="title">
+			<p>Nueva Cuenta</p>
+		</div>
+		<a href="#" data-rel="back" class="ui-btn ui-corner-all ui-shadow ui-btn-a ui-icon-delete ui-btn-icon-notext ui-btn-right">Close</a>
+		<form role="form" action="helperCuentas.php" method="post" data-ajax ="false">
+			<div class="form_nombre">
+				<input type="text" name="name" placeholder="Nombre de la cuenta">
+			</div>
+			<div class="form1">
+				<fieldset data-role="field-contain">
+					<label>Balance Inicial:</label>
+					<input type="number" step="0.01" name="balance" value="0">
+				</fieldset>
+				<fieldset data-role="field-contain">
+					<label>Ahorro Inicial:</label>
+					<input type="number" step="0.5" name="ahorro" value="0">
+				</fieldset>
+				<fieldset data-role="field-contain">
+					<label>Paga semanal:</label>
+					<input type="number" step="0.5" name="paga" value="3">
+				</fieldset>
+			</div>
+			<div class="form2">
+				<fieldset data-role="field-contain">
+					<label>Porcentaje hucha:</label>
+					<input type="number" name="hucha" value="10">
+				</fieldset>
+				<fieldset data-role="field-contain">
+					<label>Comisión Gestión:</label>
+					<input type="number" name="comision" value="10">
+				</fieldset>		
+			</div>
+			<div class="form3">
+				<fieldset data-role="field-contain">
+					<label>Interes +:</label>
+					<input type="number" step="0.5" name="interes1" value="5">
+				</fieldset>
+				<fieldset data-role="field-contain">
+					<label>Interes -:</label>
+					<input type="number" step="0.5" name="interes2" value="7">
+				</fieldset>
+			</div>
+			<input type="hidden" name="usuario">
+					<button type="submit" name="submit" value="cuenta">CREAR</button>
+				</form>
 	</div>
 
   	<div role="main" class="ui-content">
@@ -360,81 +523,24 @@
   				<a href="#nuevoAhorrador" data-rel="popup" data-position-to="window" >Nuevo Dependiente</a>
   			</div>
   			<div class="btn right">
-  				<a href="#cuenta-page">Nueva Cuenta</a>
+  				<a href="#nuevaCuenta" data-rel="popup" data-position-to="window" >Nueva Cuenta</a>
   			</div>
   			<div class="form">
   				<form role="form" action="cuentaspage.php" method="post" data-ajax ="false">
         		<?php foreach ($cuentas as $cuenta) { 
-        			echo "<button type='submit' name='submit' value='".$cuenta['ID']."'>".$cuenta['nombre']."</button>";
+        			echo "<button type='submit' name='submit' value='".$cuenta['ID']."'>".$cuenta['nombreCuenta']."</button>";
         		}
         		?>
         		</form>
+        		<?php foreach ($dependientes as $dep) {
+        			if (!array_key_exists($dep['ID'], $cuentas)) {
+        				echo "<a href='#nuevaCuenta' data-rel='popup' data-id='".$dep['ID']."' data-position-to='window'>".$dep['nombre']."</a>";
+        			}
+        		} ?>
         	</div>
   		</div>
   	</div>
 </div>
 
-<div data-role="page" id="cuenta-page">
-	<div role="main" class="ui-content">
-		<div class="back_form">
-			<div class="back2_form">
-				<form role="form" action="helperCuentas.php" method="post" data-ajax ="false">
-					<fieldset data-role="fieldcontain">
-						<label>Nombre:</label>
-						<input type="text" name="name" placeholder="Nombre de la cuenta">
-					</fieldset>
-					<fieldset data-role="fieldcontain">
-						<label>Usuario:</label>
-						<select name='depen' data-mini='true' data-theme="c">
-                			<option value="" selected="true" disabled="true">Seleccione usuario</option>
-                  			<?php
-                    		foreach ($dependientes as $usuario) {
-                    			echo "<option value=".$usuario['ID'].">".$usuario['nombre']."</option>";
-                    		}
-                  			?>
-                		</select>
-					</fieldset>
-					<div class="half1_form">
-						<fieldset data-role="field-contain">
-							<label>Balance Inicial:</label>
-							<input type="number" name="balance" value="0">
-						</fieldset>
-						<fieldset data-role="field-contain">
-							<label>Ahorro Inicial:</label>
-							<input type="number" name="ahorro" value="0">
-						</fieldset>
-						<fieldset data-role="field-contain">
-							<label>Paga semanal:</label>
-							<input type="number" name="paga" value="3">
-						</fieldset>
-					</div>
-					<div class="half2_form">
-						<fieldset data-role="field-contain">
-							<label>Porcentaje hucha:</label>
-							<input type="number" name="hucha" value="10">
-						</fieldset>
-						<fieldset data-role="field-contain">
-							<label>Interes +:</label>
-							<input type="number" name="interes1" value="5">
-						</fieldset>
-						<fieldset data-role="field-contain">
-							<label>Interes -:</label>
-							<input type="number" name="interes2" value="7">
-						</fieldset>
-					</div>
-					<button type="submit" name="submit" value="cuenta">CREAR</button>
-				</form>
-			</div>
-
-		</div>
-		<a href="#main-page">Volver</a>
-		
-			
-			
-
-			
-		
-	</div>
-</div>
 </body>
 </html>
