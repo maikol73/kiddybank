@@ -462,6 +462,7 @@
   			<p><?php echo $cuenta->getNombre(); ?></p>
   			<a href="#nuevoCargo" data-rel="popup" data-position-to="window" class="ui-btn ui-corner-all ui-shadow ui-btn-inline ui-icon-check ui-btn-icon-left ui-btn-a" data-transition="pop">Nuevo</a>
   			<a href="#ajustesForm" data-rel="popup" data-position-to="window" class="ui-btn ui-corner-all ui-shadow ui-btn-inline ui-icon-check ui-btn-icon-left ui-btn-a" data-transition="pop">Ajustes</a>
+  			<a href="adminpage.php" data-transition="slide" data-ajax="false" class="ui-btn ui-corner-all ui-shadow ui-btn-inline ui-icon-check ui-btn-icon-left ui-btn-a" data-transition="pop">Volver</a>
   		</div>
   		<div class="back_balance balance">
   			<p><?php echo $cuenta->getBalance(); ?> €</p>

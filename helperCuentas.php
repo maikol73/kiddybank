@@ -139,4 +139,21 @@
 				echo "ERROR INGRESO";
 		}
     }
+
+    if (isset($_POST['submit']) && $_POST['submit']=="nuevoAhorrador") {
+
+    	$query=$con->prepare("INSERT INTO PPT_Usuario (usuario, password, nombre, admin) VALUES (?,?,?,?)");
+		$query->bind_param("ssis",$_POST['usuario'],$_POST['password'],$_POST['nombre'],$_SESSION['user']);
+    	if ($query->execute()) {
+			$query->close();
+        	echo "<script>
+				window.location.href='adminpage.php';
+				</script>";
+		} else {
+			$_SESSION['error']=htmlspecialchars($query->error);
+			echo "<script> 
+				window.location.href='adminpage.php';
+				</script>";
+		}
+    }
 ?>

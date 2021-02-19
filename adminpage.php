@@ -43,6 +43,11 @@
     	header("Location: index.php");
 	}
 
+	if (isset($_SESSION['user'])) {
+		$error=$_SESSION['error'];
+		unset($_SESSION['error']);
+	}
+
 	$usuario = returnUser($_SESSION['user'],$con);
 	$dependientes=returnUsersAdmin($con,$usuario['ID']);
 	$cuentas=returnCuentas($con,$usuario['ID']);
@@ -221,9 +226,63 @@
 
 </style>
 <script type="text/javascript">
+
+	function checkPassword() {
+		if ($("input[name='password']","#nuevoAhorrador").val()=="") {
+			return "Introduzca una contraseña"
+		}
+		if ($("input[name='password']","#nuevoAhorrador").val().length<4) {
+			return "La contraseña debe tener al menos 4 caracteres"
+		}
+
+
+		if ($("input[name='password']","#nuevoAhorrador").val()!=$("input[name='password2']","#nuevoAhorrador").val()) {
+			return "Las contraseñas no coinciden"
+		}
+		return 1
+	} 
+
+	function checkUsuario() {
+		if ($("input[name='usuario']","#nuevoAhorrador").val()=="") {
+			return "Introduzca un usuario"
+		}
+		if ($("input[name='usuario']","#nuevoAhorrador").val().length<4) {
+			return "El usuario debe tener al menos 4 caracteres"
+		}
+		return true;
+	}
+
+	function checkNombre() {
+		if ($("input[name='nombre']","#nuevoAhorrador").val()=="") {
+			return "Introduzca un nombre"
+		}
+		if ($("input[name='nombre']","#nuevoAhorrador").val().length<2) {
+			return "El nombre debe tener al menos 2 caracteres"
+		}
+		return true;
+	}
+
+	function checkFormUsuario() {
+		if (checkUsuario()!=1) {
+			$(".check","#nuevoAhorrador").text(checkUsuario())
+			$("button","#nuevoAhorrador").prop('disabled',true)
+			return
+		}
+		if (checkNombre()!=1) {
+			$(".check","#nuevoAhorrador").text(checkNombre())
+			$("button","#nuevoAhorrador").prop('disabled',true)
+			return
+		}
+		if (checkPassword()!=1) {
+			$(".check","#nuevoAhorrador").text(checkPassword())
+			$("button","#nuevoAhorrador").prop('disabled',true)
+			return
+		} 		$(".check","#nuevoAhorrador").text("")
+		$("button","#nuevoAhorrador").prop('disabled',false)
+		return
+	}
+
 	jQuery(document).ready(function($) {
-
-
 
         $("#logout-button").click(function() {
             var result = confirm("¿Desea salir?");
@@ -232,13 +291,61 @@
                 myForm.submit();
             }
         });
+
+        $("input[name='usuario']","#nuevoAhorrador").on('keyup', function() {
+        	checkFormUsuario()
+		});
+
+		$("input[name='password']","#nuevoAhorrador").on('keyup', function() {
+        	checkFormUsuario()
+		});
+
+		$("input[name='password2']","#nuevoAhorrador").on('keyup', function() {
+        	checkFormUsuario()
+		});
+
+		$("input[name='nombre']","#nuevoAhorrador").on('keyup', function() {
+        	checkFormUsuario()
+		});
+
+
      })
 </script>
 <body>
 
 <div data-role="page" id="main-page">
 
+	<div data-role="popup" id="nuevoAhorrador" class="ui-corner-all">
+		<div class="title">
+			<p>Nuevo Ahorrador</p>
+		</div>
+		<a href="#" data-rel="back" class="ui-btn ui-corner-all ui-shadow ui-btn-a ui-icon-delete ui-btn-icon-notext ui-btn-right">Close</a>
+		<form role="form" action="helperCuentas.php" method="post" data-ajax ="false">
+			<fieldset data-role="fieldcontain" class="red">
+				<label>Usuario:</label>
+				<input type="text" name="usuario" >
+			</fieldset>
+			<fieldset data-role="field-contain">
+				<label>Nombre:</label>
+				<input type="text" name="nombre">
+			</fieldset>
+			<fieldset data-role="field-contain">
+				<label>Contraseña:</label>
+				<input type="password" name="password">
+			</fieldset>
+			<fieldset data-role="field-contain">
+				<label>Repetir contraseña:</label>
+				<input type="password" name="password2">
+			</fieldset>
+			<p class="check"></p>
+			<button type="submit" name="submit" value="nuevoAhorrador">GUARDAR</button>
+		</form>
+	</div>
+
   	<div role="main" class="ui-content">
+  		<div class="error">
+  			<p><?php echo $error; ?></p>
+  		</div>
   		<div class="back">
   			<div class="logout">
   				<a href="#" id="logout-button" data-ajax="false"><i class="material-icons logout-btn">power_settings_new</i></a>
@@ -250,7 +357,7 @@
   				<p><?php echo $usuario['nombre']; ?></p>
   			</div>
   			<div class="btn left">
-  				<a href="">Nuevo Dependiente</a>
+  				<a href="#nuevoAhorrador" data-rel="popup" data-position-to="window" >Nuevo Dependiente</a>
   			</div>
   			<div class="btn right">
   				<a href="#cuenta-page">Nueva Cuenta</a>
